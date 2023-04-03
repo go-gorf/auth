@@ -1,2 +1,5 @@
 # auth
-goref auth app
+
+```shell
+go get github.com/go-gorf/auth
+```
