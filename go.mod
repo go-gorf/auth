@@ -1,4 +1,4 @@
-module github.com/go-gorf/contrib/auth
+module github.com/go-gorf/auth
 
 go 1.19
 
