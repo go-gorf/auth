@@ -28,19 +28,23 @@ func UserSignUp(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "Error while creating password",
 		})
+		return
 	}
+
 	newUser := User{
 		Email:    body.Email,
 		Password: string(passwordHash),
+		Active:   bool(AuthSettings.NewUserState),
+		Admin:    bool(AuthSettings.NewUserAdminState),
 	}
 	result := gorf.DB.Create(&newUser)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err,
 		})
+		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "New user created successfully",
 		"user_id": newUser.ID,
 		"email":   newUser.Email,
 	})
@@ -66,6 +70,12 @@ func UserLogin(ctx *gin.Context) {
 			"message": "Invalid Password",
 		})
 		return
+	}
+
+	if !user.Active {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "User is not active",
+		})
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+var router *gin.Engine = nil
+
 // add all the apps
 var apps = []gorf.GorfApp{
 	&AuthApp,
@@ -30,19 +32,30 @@ func BootstrapRouter() *gin.Engine {
 	LoadSettings()
 	gorf.InitializeDatabase()
 	gorf.SetupApps()
-	r := gin.Default()
-	gorf.RegisterApps(r)
-	return r
+	router = gin.Default()
+	gorf.RegisterApps(router)
+	return router
 }
 
+func GetRouter() *gin.Engine {
+	if router != nil {
+		return router
+	}
+	router = BootstrapRouter()
+	return router
+}
+
+const testMail = "test@example.com"
+const testPassword = "asd123"
+
 func TestNewUserHandler(t *testing.T) {
-	r := BootstrapRouter()
+	r := GetRouter()
 	newUser := struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}{
-		"tom@example.com",
-		"asd",
+		testMail,
+		testPassword,
 	}
 
 	jsonValue, _ := json.Marshal(newUser)
@@ -51,4 +64,40 @@ func TestNewUserHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
+
+	var response map[string]string
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, testMail, response["email"])
+}
+
+func TestInvalidPassNewUserHandler(t *testing.T) {
+	r := GetRouter()
+	newUser := struct {
+		Email string `json:"email"`
+	}{
+		testMail,
+	}
+
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestInvalidMailNewUserHandler(t *testing.T) {
+	r := GetRouter()
+	newUser := struct {
+		Password string `json:"password"`
+	}{
+		testPassword,
+	}
+
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
