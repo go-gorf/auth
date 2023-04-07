@@ -12,8 +12,10 @@ import (
 
 func UserSignUp(ctx *gin.Context) {
 	var body struct {
-		Email    string `binding:"required"`
-		Password string `binding:"required"`
+		Email     string `binding:"required"`
+		Password  string `binding:"required"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 	}
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
@@ -28,21 +30,28 @@ func UserSignUp(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "Error while creating password",
 		})
+		return
 	}
+
 	newUser := User{
-		Email:    body.Email,
-		Password: string(passwordHash),
+		Email:     body.Email,
+		Password:  string(passwordHash),
+		FirstName: body.FirstName,
+		LastName:  body.LastName,
+		Active:    bool(AuthSettings.NewUserState),
+		Admin:     bool(AuthSettings.NewUserAdminState),
 	}
 	result := gorf.DB.Create(&newUser)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err,
 		})
+		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{
-		"message": "New user created successfully",
 		"user_id": newUser.ID,
 		"email":   newUser.Email,
+		"name":    newUser.FullName(),
 	})
 }
 
@@ -64,6 +73,13 @@ func UserLogin(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid Password",
+		})
+		return
+	}
+
+	if !user.Active {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "User is not active",
 		})
 		return
 	}
