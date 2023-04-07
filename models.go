@@ -1,6 +1,9 @@
 package auth
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -10,4 +13,8 @@ type User struct {
 	Password  string `json:"-" binding:"required"`
 	Active    bool   `json:"active"`
 	Admin     bool   `json:"admin"`
+}
+
+func (user *User) FullName() string {
+	return fmt.Sprintf("%v %v", user.FirstName, user.LastName)
 }

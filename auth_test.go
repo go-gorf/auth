@@ -51,11 +51,13 @@ const testPassword = "asd123"
 func TestNewUserHandler(t *testing.T) {
 	r := GetRouter()
 	newUser := struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"first_name"`
 	}{
 		testMail,
 		testPassword,
+		"toms",
 	}
 
 	jsonValue, _ := json.Marshal(newUser)

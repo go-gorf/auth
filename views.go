@@ -12,8 +12,10 @@ import (
 
 func UserSignUp(ctx *gin.Context) {
 	var body struct {
-		Email    string `binding:"required"`
-		Password string `binding:"required"`
+		Email     string `binding:"required"`
+		Password  string `binding:"required"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
 	}
 	err := ctx.ShouldBindJSON(&body)
 	if err != nil {
@@ -32,10 +34,12 @@ func UserSignUp(ctx *gin.Context) {
 	}
 
 	newUser := User{
-		Email:    body.Email,
-		Password: string(passwordHash),
-		Active:   bool(AuthSettings.NewUserState),
-		Admin:    bool(AuthSettings.NewUserAdminState),
+		Email:     body.Email,
+		Password:  string(passwordHash),
+		FirstName: body.FirstName,
+		LastName:  body.LastName,
+		Active:    bool(AuthSettings.NewUserState),
+		Admin:     bool(AuthSettings.NewUserAdminState),
 	}
 	result := gorf.DB.Create(&newUser)
 	if result.Error != nil {
@@ -47,6 +51,7 @@ func UserSignUp(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{
 		"user_id": newUser.ID,
 		"email":   newUser.Email,
+		"name":    newUser.FullName(),
 	})
 }
 
@@ -76,6 +81,7 @@ func UserLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "User is not active",
 		})
+		return
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
