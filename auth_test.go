@@ -103,3 +103,68 @@ func TestInvalidMailNewUserHandler(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestLoginHandler(t *testing.T) {
+	r := GetRouter()
+	newUser := struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"first_name"`
+	}{
+		testMail,
+		testPassword,
+		"toms",
+	}
+
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusCreated, w.Code)
+
+	var response map[string]string
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, testMail, response["email"])
+
+	// try to login
+
+	req, _ = http.NewRequest("POST", "/login", bytes.NewBuffer(jsonValue))
+
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestLoginInvalidPassHandler(t *testing.T) {
+	r := GetRouter()
+	newUser := struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"first_name"`
+	}{
+		testMail,
+		testPassword,
+		"toms",
+	}
+
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusCreated, w.Code)
+
+	var response map[string]string
+	json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Equal(t, testMail, response["email"])
+
+	// try to login
+	newUser.Password = "invalid"
+	jsonValue, _ = json.Marshal(newUser)
+	req, _ = http.NewRequest("POST", "/login", bytes.NewBuffer(jsonValue))
+
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
