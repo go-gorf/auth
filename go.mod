@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.9.0
-	github.com/go-gorf/gorf v0.0.5
+	github.com/go-gorf/gorf v0.0.6
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/crypto v0.7.0
