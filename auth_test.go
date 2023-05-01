@@ -168,3 +168,31 @@ func TestLoginInvalidPassHandler(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestUniqueUser(t *testing.T) {
+	r := GetRouter()
+	newUser := struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"first_name"`
+	}{
+		testMail,
+		testPassword,
+		"toms",
+	}
+
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var result map[string]string
+
+	err := json.Unmarshal(w.Body.Bytes(), &result)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, "User with same email already exists", result["message"])
+}
