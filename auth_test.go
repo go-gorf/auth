@@ -6,8 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-gorf/gorf"
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -45,22 +47,44 @@ func GetRouter() *gin.Engine {
 	return router
 }
 
-const testMail = "test@example.com"
-const testPassword = "asd123"
+type RandUser struct {
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"first_name"`
+}
+
+func (u *RandUser) isEmpty() bool {
+	if u.Email == "" {
+		return true
+	}
+	if u.Password == "" {
+		return true
+	}
+	return false
+}
+
+func RandonStr() string {
+	return strconv.Itoa(int(rand.Uint32()))
+}
+
+func (u *RandUser) populate() {
+	u.Email = RandonStr()
+	u.Password = RandonStr()
+	u.FirstName = RandonStr()
+}
+
+func NewTestUser() RandUser {
+	user := RandUser{}
+	user.populate()
+	return user
+}
+
+var test_user RandUser = NewTestUser()
 
 func TestNewUserHandler(t *testing.T) {
 	r := GetRouter()
-	newUser := struct {
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		FirstName string `json:"first_name"`
-	}{
-		testMail,
-		testPassword,
-		"toms",
-	}
 
-	jsonValue, _ := json.Marshal(newUser)
+	jsonValue, _ := json.Marshal(test_user)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
 
 	w := httptest.NewRecorder()
@@ -69,7 +93,7 @@ func TestNewUserHandler(t *testing.T) {
 
 	var response map[string]string
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, testMail, response["email"])
+	assert.Equal(t, test_user.Email, response["email"])
 }
 
 func TestInvalidPassNewUserHandler(t *testing.T) {
@@ -77,7 +101,7 @@ func TestInvalidPassNewUserHandler(t *testing.T) {
 	newUser := struct {
 		Email string `json:"email"`
 	}{
-		testMail,
+		test_user.Email,
 	}
 
 	jsonValue, _ := json.Marshal(newUser)
@@ -93,7 +117,7 @@ func TestInvalidMailNewUserHandler(t *testing.T) {
 	newUser := struct {
 		Password string `json:"password"`
 	}{
-		testPassword,
+		test_user.Password,
 	}
 
 	jsonValue, _ := json.Marshal(newUser)
@@ -106,16 +130,7 @@ func TestInvalidMailNewUserHandler(t *testing.T) {
 
 func TestLoginHandler(t *testing.T) {
 	r := GetRouter()
-	newUser := struct {
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		FirstName string `json:"first_name"`
-	}{
-		testMail,
-		testPassword,
-		"toms",
-	}
-
+	newUser := NewTestUser()
 	jsonValue, _ := json.Marshal(newUser)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
 
@@ -125,7 +140,7 @@ func TestLoginHandler(t *testing.T) {
 
 	var response map[string]string
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, testMail, response["email"])
+	assert.Equal(t, newUser.Email, response["email"])
 
 	// try to login
 
@@ -138,15 +153,7 @@ func TestLoginHandler(t *testing.T) {
 
 func TestLoginInvalidPassHandler(t *testing.T) {
 	r := GetRouter()
-	newUser := struct {
-		Email     string `json:"email"`
-		Password  string `json:"password"`
-		FirstName string `json:"first_name"`
-	}{
-		testMail,
-		testPassword,
-		"toms",
-	}
+	newUser := NewTestUser()
 
 	jsonValue, _ := json.Marshal(newUser)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
@@ -157,7 +164,7 @@ func TestLoginInvalidPassHandler(t *testing.T) {
 
 	var response map[string]string
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Equal(t, testMail, response["email"])
+	assert.Equal(t, newUser.Email, response["email"])
 
 	// try to login
 	newUser.Password = "invalid"
@@ -167,4 +174,32 @@ func TestLoginInvalidPassHandler(t *testing.T) {
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUniqueUser(t *testing.T) {
+	r := GetRouter()
+	newUser := NewTestUser()
+
+	// create new user
+	jsonValue, _ := json.Marshal(newUser)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusCreated, w.Code)
+
+	// try to recreate same user
+	req, _ = http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
+
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var result map[string]string
+
+	err := json.Unmarshal(w.Body.Bytes(), &result)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, "User with same email already exists", result["message"])
 }

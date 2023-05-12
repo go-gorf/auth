@@ -24,6 +24,15 @@ func UserSignUp(ctx *gin.Context) {
 		})
 		return
 	}
+	// check for existing user
+	user := User{}
+	gorf.DB.First(&user, "email = ?", body.Email)
+	if user.ID > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "User with same email already exists",
+		})
+		return
+	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
@@ -49,9 +58,9 @@ func UserSignUp(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{
-		"user_id": newUser.ID,
-		"email":   newUser.Email,
-		"name":    newUser.FullName(),
+		"id":    newUser.ID,
+		"email": newUser.Email,
+		"name":  newUser.FullName(),
 	})
 }
 
