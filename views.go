@@ -50,8 +50,8 @@ func UserSignUp(ctx *gin.Context) {
 		Active:    bool(AuthSettings.NewUserState),
 		Admin:     bool(AuthSettings.NewUserAdminState),
 	}
-	result := gorf.DB.Create(&newUser)
-	if result.Error != nil {
+	gorf.DB.Create(&newUser)
+	if newUser.ID == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": err,
 		})
@@ -77,7 +77,13 @@ func UserLogin(ctx *gin.Context) {
 		return
 	}
 	user := User{}
-	gorf.DB.First(&user, "email = ?", body.Email)
+	err = gorf.DB.First(&user, "email = ?", body.Email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
