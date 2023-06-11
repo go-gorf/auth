@@ -1,19 +1,25 @@
 package auth
 
 import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/go-gorf/gorf"
 )
 
 func setup() error {
-	err := gorf.DB.AutoMigrate(&User{})
+	cognitoCtx = context.Background()
+	defaultConfig, err := config.LoadDefaultConfig(cognitoCtx, config.WithRegion(Settings.Region))
 	if err != nil {
 		return err
 	}
+	client = cognitoidentityprovider.NewFromConfig(defaultConfig)
 	return nil
 }
 
-var AuthApp = gorf.GorfBaseApp{
-	Name:         "auth",
+var App = gorf.BaseApp{
+	Title:        "Auth",
+	Info:         "Gorf Auth handler app",
 	RouteHandler: Urls,
 	SetUpHandler: setup,
 }

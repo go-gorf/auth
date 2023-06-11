@@ -1,23 +1,17 @@
 package auth
 
-type AuthState bool
+import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+)
 
-var activateUserOnCreation AuthState = true
-var skipEmailVerification AuthState = false
-var defaultAdminStatus AuthState = false
+var client *cognitoidentityprovider.Client
+var cognitoCtx context.Context
 
-// modify the setting like this in project settings
-// auth.AuthSettings.NewUserState = auth.AuthState(true)
-
-type AuthAppSettings struct {
-	NewUserState             AuthState
-	NewUserAdminState        AuthState
-	EmailVerification        AuthState
-	EmailVerificationBackend AuthEmailVerificationBackend
+type authSettings struct {
+	ClientId string
+	UserPool string
+	Region   string
 }
 
-var AuthSettings = AuthAppSettings{
-	NewUserState:      activateUserOnCreation,
-	EmailVerification: skipEmailVerification,
-	NewUserAdminState: defaultAdminStatus,
-}
+var Settings = authSettings{}
