@@ -9,8 +9,6 @@ require (
 	github.com/go-gorf/gorf v0.0.13
 )
 
-replace github.com/go-gorf/gorf => ../gorf
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.24 // indirect

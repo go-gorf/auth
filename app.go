@@ -8,8 +8,8 @@ import (
 )
 
 func setup() error {
-	ctx = context.Background()
-	defaultConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(Settings.Region))
+	cognitoCtx = context.Background()
+	defaultConfig, err := config.LoadDefaultConfig(cognitoCtx, config.WithRegion(Settings.Region))
 	if err != nil {
 		return err
 	}

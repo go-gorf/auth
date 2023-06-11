@@ -6,12 +6,12 @@ import (
 )
 
 var client *cognitoidentityprovider.Client
-var ctx context.Context
+var cognitoCtx context.Context
 
-type AuthSettings struct {
+type authSettings struct {
 	ClientId string
 	UserPool string
 	Region   string
 }
 
-var Settings = AuthSettings{}
+var Settings = authSettings{}
