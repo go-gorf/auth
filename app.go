@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/go-gorf/gorf"
@@ -14,6 +15,9 @@ func setup() error {
 		return err
 	}
 	client = cognitoidentityprovider.NewFromConfig(defaultConfig)
+	if Settings.AuthMiddleware == nil {
+		return errors.New("no auth middleware present")
+	}
 	return nil
 }
 
