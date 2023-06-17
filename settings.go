@@ -9,9 +9,15 @@ var client *cognitoidentityprovider.Client
 var cognitoCtx context.Context
 
 type authSettings struct {
-	ClientId string
-	UserPool string
-	Region   string
+	ClientId  string
+	UserPool  string
+	Region    string
+	UserObjId string
 }
 
-var Settings = authSettings{}
+var Settings = authSettings{
+	ClientId:  "",
+	UserPool:  "",
+	Region:    "",
+	UserObjId: "user",
+}
