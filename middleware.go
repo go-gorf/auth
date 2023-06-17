@@ -15,6 +15,7 @@ type Middleware interface {
 	ParseAuthHeader(ctx *gin.Context) error
 	ParseJwtToken() error
 	GetUser(ctx *gin.Context) (*gorf.BaseUser, error)
+	Authenticate(ctx *gin.Context) (*gorf.BaseUser, error)
 }
 
 type JwtAuthMiddleware struct {
@@ -67,44 +68,42 @@ func (m *JwtAuthMiddleware) GetUser(ctx *gin.Context) (*gorf.BaseUser, error) {
 	return user, nil
 }
 
-func AuthenticationRequiredMiddleware(ctx *gin.Context) {
-	jwtAuth := JwtAuthMiddleware{}
-	err := jwtAuth.ParseAuthHeader(ctx)
+func (m *JwtAuthMiddleware) Authenticate(ctx *gin.Context) (*gorf.BaseUser, error) {
+	err := m.ParseAuthHeader(ctx)
 	if err != nil {
-		//TODO: use gorf impl
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"message": err.Error(),
-		})
-		return
+		return nil, errors.New(err.Error())
 	}
 
-	err = jwtAuth.ParseJwtToken()
+	err = m.ParseJwtToken()
 	if err != nil {
-		//TODO: use gorf impl
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"message": err.Error(),
-		})
-		return
+		return nil, errors.New(err.Error())
 	}
-	exp, err := jwtAuth.claims.GetExpirationTime()
+
+	exp, err := m.claims.GetExpirationTime()
 	if err != nil {
-		//TODO: use gorf impl
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"message": err.Error(),
-		})
-		return
+		return nil, errors.New(err.Error())
 	}
 
 	if time.Now().Unix() > exp.Unix() {
-		//TODO: use gorf impl
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"message": "Token Expired",
-		})
-		return
+		return nil, errors.New("jwt token expired")
 	}
 
-	user, err := jwtAuth.GetUser(ctx)
+	user, err := m.GetUser(ctx)
+	if err != nil {
+		return nil, errors.New("unable to get User")
+	}
+	return user, nil
+}
 
+func AuthenticationRequiredMiddleware(ctx *gin.Context) {
+	jwtAuth := JwtAuthMiddleware{}
+	user, err := jwtAuth.Authenticate(ctx)
+
+	if err != nil {
+		e := gorf.NewErr("failed to authenticate", http.StatusUnauthorized, err)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, e.Response())
+		return
+	}
 	ctx.Set(gorf.Settings.UserObjKey, user)
 	ctx.Next()
 }
