@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-gorf/gorf"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"net/http"
 	"strings"
 	"time"
@@ -15,10 +16,11 @@ type JwtAuthMiddleware struct {
 	tokenString string
 	claims      jwt.MapClaims
 	DB          gorf.Db
+	jwkRes      JwkRes
 }
 
-func NewJwtMiddleware(database gorf.Db) *JwtAuthMiddleware {
-	return &JwtAuthMiddleware{DB: database}
+func NewJwtMiddleware(database gorf.Db, jwkRes JwkRes) *JwtAuthMiddleware {
+	return &JwtAuthMiddleware{DB: database, jwkRes: jwkRes}
 }
 
 func (m *JwtAuthMiddleware) ParseAuthHeader(ctx *gin.Context) error {
@@ -34,14 +36,31 @@ func (m *JwtAuthMiddleware) ParseAuthHeader(ctx *gin.Context) error {
 	return nil
 }
 
-func (m *JwtAuthMiddleware) ParseJwtToken() error {
+func (m *JwtAuthMiddleware) ParseJwtToken(ctx *gin.Context) error {
+	//todo move to new res
+	keySet, err := jwk.Fetch(ctx, m.jwkRes.JwksUrl())
+	if err != nil {
+		return err
+	}
 	token, _ := jwt.Parse(m.tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
-		return []byte(gorf.Settings.SecretKey), nil
+		kid, ok := token.Header["kid"].(string)
+		if !ok {
+			return nil, errors.New("kid header not found")
+		}
+		keys, ok := keySet.LookupKeyID(kid)
+		if !ok {
+			return nil, fmt.Errorf("key with specified kid is not present in jwks")
+		}
+		var publickey interface{}
+		err = keys.Raw(&publickey)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse pubkey")
+		}
+		return publickey, nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -71,7 +90,7 @@ func (m *JwtAuthMiddleware) Authenticate(ctx *gin.Context) (*gorf.BaseUser, erro
 		return nil, errors.New(err.Error())
 	}
 
-	err = m.ParseJwtToken()
+	err = m.ParseJwtToken(ctx)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}

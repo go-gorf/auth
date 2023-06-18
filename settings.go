@@ -14,12 +14,14 @@ type authSettings struct {
 	Region         string
 	UserObjId      string
 	AuthMiddleware *JwtAuthMiddleware
+	JwkRes         *JwkRes
 }
 
 var Settings = authSettings{
 	ClientId:       "",
 	UserPool:       "",
 	Region:         "",
-	UserObjId:      "user",
+	UserObjId:      "username",
 	AuthMiddleware: nil,
+	JwkRes:         nil,
 }

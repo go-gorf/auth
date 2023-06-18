@@ -8,7 +8,7 @@ import (
 
 type Middleware interface {
 	ParseAuthHeader(ctx *gin.Context) error
-	ParseJwtToken() error
+	ParseJwtToken(ctx *gin.Context) error
 	GetUser(ctx *gin.Context) (*gorf.BaseUser, error)
 	Authenticate(ctx *gin.Context) (*gorf.BaseUser, error)
 }
