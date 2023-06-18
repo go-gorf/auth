@@ -11,6 +11,7 @@ type Middleware interface {
 	ParseJwtToken(ctx *gin.Context) error
 	GetUser(ctx *gin.Context) (*gorf.BaseUser, error)
 	Authenticate(ctx *gin.Context) (*gorf.BaseUser, error)
+	GetTokenStr() *string
 }
 
 func AuthenticationRequiredMiddleware(ctx *gin.Context) {

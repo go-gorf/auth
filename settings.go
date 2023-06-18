@@ -13,7 +13,7 @@ type authSettings struct {
 	UserPool       string
 	Region         string
 	UserObjId      string
-	AuthMiddleware *JwtAuthMiddleware
+	AuthMiddleware Middleware
 	JwkRes         *JwkRes
 }
 
