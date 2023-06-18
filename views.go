@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/gin-gonic/gin"
@@ -44,7 +45,35 @@ func UserLogin(ctx *gin.Context) {
 }
 
 func ProtectedApi(ctx *gin.Context) {
+	//todo fix format
 	gorf.Response(ctx, gin.H{
 		"Status": "ok",
+	})
+}
+
+func UserLogout(ctx *gin.Context) {
+
+	err := Settings.AuthMiddleware.ParseAuthHeader(ctx)
+	if err != nil {
+		gorf.BadRequest(ctx, "error on parsing header", err)
+		return
+	}
+
+	tokenInput := &cognitoidentityprovider.RevokeTokenInput{
+		ClientId: &Settings.ClientId,
+		Token:    Settings.AuthMiddleware.GetTokenStr(),
+	}
+
+	result, err := client.RevokeToken(cognitoCtx, tokenInput)
+	if err != nil {
+		gorf.BadRequest(ctx, "failed to revoke token", err)
+		return
+	}
+
+	fmt.Println(result.ResultMetadata)
+
+	//fix format
+	gorf.Response(ctx, gin.H{
+		"Status": "logout successfully",
 	})
 }

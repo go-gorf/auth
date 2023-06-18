@@ -35,6 +35,9 @@ func (m *JwtAuthMiddleware) ParseAuthHeader(ctx *gin.Context) error {
 	m.tokenString = jwtArr[1]
 	return nil
 }
+func (m *JwtAuthMiddleware) GetTokenStr() *string {
+	return &m.tokenString
+}
 
 func (m *JwtAuthMiddleware) ParseJwtToken(ctx *gin.Context) error {
 	//todo move to new res
