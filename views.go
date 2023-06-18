@@ -5,10 +5,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/gin-gonic/gin"
 	"github.com/go-gorf/gorf"
+	"github.com/go-gorf/gorf/common"
 )
 
 func UserLogin(ctx *gin.Context) {
-	loginInput := &LoginInput{}
+	loginInput := &common.LoginInput{}
 	err := ctx.Bind(loginInput)
 	if err != nil {
 		gorf.BadRequest(ctx, "unable to parse login input", err)
@@ -35,5 +36,15 @@ func UserLogin(ctx *gin.Context) {
 		"ExpiresIn":    result.AuthenticationResult.ExpiresIn,
 		"AccessToken":  *result.AuthenticationResult.AccessToken,
 		"RefreshToken": *result.AuthenticationResult.RefreshToken,
+	})
+	//client.RevokeToken()
+	//client.GetUser()
+	//client.VerifySoftwareToken()
+	//client.AssociateSoftwareToken()
+}
+
+func ProtectedApi(ctx *gin.Context) {
+	gorf.Response(ctx, gin.H{
+		"Status": "ok",
 	})
 }
