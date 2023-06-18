@@ -7,13 +7,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.10
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-gorf/gorf v0.0.14
-	github.com/go-gorf/gorf/common v0.0.0-20230618104928-9cd1511785dd
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/lestrrat-go/jwx/v2 v2.0.11
 )
 
-//replace github.com/go-gorf/gorf => ../gorf
-//replace github.com/go-gorf/gorf/common => ../gorf/common
+require github.com/go-gorf/gorf/common v0.0.1
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0 // indirect
