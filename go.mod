@@ -6,14 +6,14 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.25
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.22.10
 	github.com/gin-gonic/gin v1.9.0
-	github.com/go-gorf/gorf v0.0.13
-	github.com/go-gorf/gorf/common v0.0.0-00010101000000-000000000000
+	github.com/go-gorf/gorf v0.0.14
+	github.com/go-gorf/gorf/common v0.0.0-20230618104928-9cd1511785dd
 	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/lestrrat-go/jwx/v2 v2.0.11
 )
 
-replace github.com/go-gorf/gorf => ../gorf
-
-replace github.com/go-gorf/gorf/common => ../gorf/common
+//replace github.com/go-gorf/gorf => ../gorf
+//replace github.com/go-gorf/gorf/common => ../gorf/common
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0 // indirect
@@ -29,6 +29,7 @@ require (
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/bytedance/sonic v1.8.6 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -37,7 +38,10 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
-	github.com/lestrrat-go/jwx/v2 v2.0.11 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
+	github.com/lestrrat-go/httpcc v1.0.1 // indirect
+	github.com/lestrrat-go/httprc v1.0.4 // indirect
+	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
